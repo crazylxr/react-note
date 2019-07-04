@@ -349,6 +349,7 @@ export function createWorkInProgress(
   expirationTime: ExpirationTime,
 ): Fiber {
   let workInProgress = current.alternate;
+
   if (workInProgress === null) {
     // We use a double buffering pooling technique because we know that we'll
     // only ever need at most two versions of a tree. We pool the "other" unused

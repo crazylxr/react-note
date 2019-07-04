@@ -159,6 +159,11 @@ export function reconcileChildren(
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
     // we can optimize this reconciliation pass by not tracking side-effects.
+
+    // 如果是一个还没有渲染过的组件，不会通过最小副作用更新他的子组件，
+    // 相反，会在渲染之前将它们全部添加到子节点
+    // 意味着可以通过不跟踪副作用来优化 reconciliation 过程
+
     workInProgress.child = mountChildFibers(
       workInProgress,
       null,
@@ -172,6 +177,11 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
+
+    // 如果当前的子节点与 work in progress 相同，意味着还没有开始对这些节点做任何工作。
+    // 因此，使用克隆算法创建所有当前子节点的副本
+
+    // 如果已经有一些工作了，那么此时是无效的，应该抛弃它
     workInProgress.child = reconcileChildFibers(
       workInProgress,
       current.child,
@@ -661,12 +671,18 @@ function updateClassComponent(
 
   const instance = workInProgress.stateNode;
   let shouldUpdate;
-  if (instance === null) {
+  if (instance === null) { // 第一次渲染的时候肯定不是不存在的
     if (current !== null) {
+      // 这里想不通为什么 instance 为空但是 current 又不为空，如果第一次渲染不应该两个都为空么？
+      // 在懒加载的时候 current 传的是 null
+
       // An class component without an instance only mounts if it suspended
       // inside a non- concurrent tree, in an inconsistent state. We want to
       // tree it like a new mount, even though an empty version of it already
       // committed. Disconnect the alternate pointers.
+
+      // 没有 instance 的类组件只有在 suspended 的时候再回挂载在一个 non-concurrent tree 里，并且处于不一致的状态
+      // 我们 tree 像一个新的挂载，即使它已经是空的版本，以及提交。也要断开备用指针
       current.alternate = null;
       workInProgress.alternate = null;
       // Since this is conceptually a new fiber, schedule a Placement effect
